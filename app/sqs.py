@@ -3,7 +3,7 @@ import os
 import aioboto3
 from botocore.exceptions import ClientError
 
-from app.logging import logger
+from app.logger import logger
 from app.schemas import Acknowledgement
 from app.utils import async_retry_on_exception
 
@@ -15,12 +15,12 @@ def get_acknowledgement_queue_url(status: str) -> str:
     :return:
     """
     queue_mapping = {
-        "success": os.getenv("success_sqs_queue", ""),
-        "validation_error": os.getenv("validation_error_sqs_queue", ""),
-        "db_error": os.getenv("db_error_sqs_queue", ""),
-        "general_error": os.getenv("general_error_sqs_queue", ""),
+        "success": os.getenv("success_sqs_queue", "success_queue"),
+        "validation_error": os.getenv("validation_error_sqs_queue", "validation_error_queue"),
+        "db_error": os.getenv("db_error_sqs_queue", "db_error_queue"),
+        "general_error": os.getenv("general_error_sqs_queue", "general_error_queue"),
     }
-    return queue_mapping.get(status, os.getenv("default_sqs_queue", ""))
+    return queue_mapping.get(status, os.getenv("default_sqs_queue", "default_queue"))
 
 
 @async_retry_on_exception(max_retries=5, initial_delay=1, exceptions=(ClientError, TimeoutError))

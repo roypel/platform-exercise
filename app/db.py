@@ -3,7 +3,7 @@ import json
 import os
 import asyncpg
 
-from app.logging import logger
+from app.logger import logger
 from app.schemas import Telemetry, DBError
 from app.utils import async_retry_on_exception
 

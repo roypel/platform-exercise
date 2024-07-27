@@ -2,7 +2,7 @@ import asyncio
 from random import randint
 from functools import wraps
 
-from app.logging import logger
+from app.logger import logger
 
 
 def async_retry_on_exception(max_retries=5, initial_delay=1, exceptions=(Exception,)):
@@ -23,7 +23,7 @@ def async_retry_on_exception(max_retries=5, initial_delay=1, exceptions=(Excepti
                 except exceptions as e:
                     attempt += 1
                     wait_time = initial_delay * (2 ** (attempt - 1)) + randint(0, 1000) / 1000
-                    logger.warning(f"Attempt {attempt}/{max_retries} failed: {e}. Retrying in {wait_time:.2f} seconds...")
+                    logger.warning(f"Attempt {attempt}/{max_retries} failed: {e}. Retrying in {wait_time:.2f} seconds")
                     await asyncio.sleep(wait_time)
             logger.error("Max retries exceeded. Operation failed.")
             raise

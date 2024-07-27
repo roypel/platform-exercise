@@ -4,7 +4,7 @@ import asyncio
 from pydantic import ValidationError
 
 from app.db import TelemetryDB
-from app.logging import logger
+from app.logger import logger
 from app.schemas import Telemetry, Acknowledgement, DBError
 from app.sqs import send_acknowledgement
 
