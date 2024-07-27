@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from app.db import TelemetryDB
 from app.logger import logger
 from app.schemas import Telemetry, Acknowledgement, DBError
-from app.sqs import send_acknowledgement
+from app.sqs import send_acknowledgement, get_acknowledgement_queue_url
 
 
 def lambda_handler(event, context):
@@ -64,5 +64,6 @@ async def process_telemetry(telemetry_input, db):
         logger.error(f'Unhandled exception has occurred: {e}')
         ack = Acknowledgement(status="general_error", details={"message": e})
     finally:
-        await send_acknowledgement(ack)
+        queue_url = get_acknowledgement_queue_url(ack.status)
+        await send_acknowledgement(ack, queue_url)
         logger.debug("Finished processing message")

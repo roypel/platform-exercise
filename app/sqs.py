@@ -7,6 +7,8 @@ from app.logger import logger
 from app.schemas import Acknowledgement
 from app.utils import async_retry_on_exception
 
+session = aioboto3.Session()
+
 
 def get_acknowledgement_queue_url(status: str) -> str:
     """
@@ -24,17 +26,17 @@ def get_acknowledgement_queue_url(status: str) -> str:
 
 
 @async_retry_on_exception(max_retries=5, initial_delay=1, exceptions=(ClientError, TimeoutError))
-async def send_acknowledgement(ack: Acknowledgement):
+async def send_acknowledgement(ack: Acknowledgement, queue_url: str, endpoint_url=None):
     """
     Handles sending acknowledgements to SQS queues, depending on the acknowledgement status
     :param ack: Object of type Acknowledgement which holds the status and the details to be sent
+    :param queue_url: The URL of the queue to send the message to
     :return:
     """
-    queue_url = get_acknowledgement_queue_url(ack.status)
     logger.debug(f"sending message {ack.json()} to queue {queue_url}")
-    async with aioboto3.client('sqs') as client:
+    async with session.client('sqs', region_name='us-east-1', endpoint_url=endpoint_url) as client:
         response = await client.send_message(
             QueueUrl=queue_url,
-            MessageBody=ack.json()
+            MessageBody=ack.model_dump_json(),
         )
         return response

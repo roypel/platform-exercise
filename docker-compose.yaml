@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    environment:
+      - DATABASE_URL=postgres://testuser:testpassword@db:5432/testdb
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    depends_on:
+      - postgres
+      - localstack
+
+  postgres:
+    image: postgres:14
+    environment:
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./resources/migrations:/docker-entrypoint-initdb.d/
+
+  localstack:
+    image: localstack/localstack
+    environment:
+      - SERVICES=sqs,lambda
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    ports:
+      - "4566:4566"

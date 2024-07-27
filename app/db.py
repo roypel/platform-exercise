@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+
 import asyncpg
 
 from app.logger import logger
@@ -72,15 +73,16 @@ class TelemetryDB(DBInterface):
         logger.debug(f"inserting data: {telemetry.dict}")
         try:
             # Use upsert to update existing data in case it is needed
-            db_id = await self._connection_pool.execute(
+            db_id = await self._connection_pool.fetch(
                 """
                 INSERT INTO telemetry (source, timestamp, data)
                 VALUES ($1, $2, $3)
                 ON CONFLICT (source, timestamp) DO UPDATE SET data = $3, updated_at = now()
                 RETURNING id
                 """,
-                telemetry.source, telemetry.timestamp, telemetry.data
+                # Timestamp will be stored as UTC without timezone to avoid conversion issues in different locations
+                telemetry.source, telemetry.timestamp.replace(tzinfo=None), telemetry.data
             )
-            return db_id
+            return db_id[0]['id']
         except (asyncpg.PostgresConnectionError, asyncpg.PostgresError) as e:
-            raise DBError("A database error occurred") from e
+            raise DBError(f"A database error occurred - {e}") from e
