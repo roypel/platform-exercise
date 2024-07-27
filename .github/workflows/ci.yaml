@@ -20,13 +20,20 @@ jobs:
           POSTGRES_PASSWORD: password
         ports:
           - 5432:5432
-        volumes:
-          - ./resources/migrations:/docker-entrypoint-initdb.d/
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
+      localstack:
+        image: localstack/localstack
+        env:
+          SERVICES: sqs,lambda
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+        ports:
+          - "4566:4566"
 
     steps:
     - name: Checkout code
