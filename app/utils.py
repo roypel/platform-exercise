@@ -6,6 +6,13 @@ from app.logging import logger
 
 
 def async_retry_on_exception(max_retries=5, initial_delay=1, exceptions=(Exception,)):
+    """
+    Wrapper to perform exponential backoff retry mechanism
+    :param max_retries: Amount of times to retry operation
+    :param initial_delay: Initial wait in seconds, that will be exponentially raised in each attempt
+    :param exceptions: List of exceptions that will be caught and retried, other exceptions won't be retried but raise
+    :return:
+    """
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):

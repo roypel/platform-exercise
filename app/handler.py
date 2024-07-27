@@ -29,6 +29,9 @@ def lambda_handler(event, context):
 
 
 async def process_data(event, context):
+    """
+    Asynchronous handler for the lambda input
+    """
     logger.debug(event)
     telemetries = event.get('telemetries', [])
     # Init the DB once for all telemetries insertions
@@ -40,6 +43,12 @@ async def process_data(event, context):
 
 
 async def process_telemetry(telemetry_input, db):
+    """
+    Process a single telemetry input
+    :param telemetry_input: A raw, single telemetry input
+    :param db: A initialized DB with a connection pool which can be used
+    :return:
+    """
     ack = None
     try:
         telemetry = Telemetry(**telemetry_input)

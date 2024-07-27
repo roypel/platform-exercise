@@ -63,6 +63,12 @@ class TelemetryDB(DBInterface):
     @async_retry_on_exception(max_retries=5, initial_delay=1,
                               exceptions=(DBError,))
     async def insert_telemetry(self, telemetry: Telemetry):
+        """
+        Insert telemetry data into the DB as a single row
+        In case a similar row appears (with the same source and timestamp), update with the new data
+        :param telemetry: An object with validated telemetry fields
+        :return: The ID of the new added row
+        """
         logger.debug(f"inserting data: {telemetry.dict}")
         try:
             # Use upsert to update existing data in case it is needed
