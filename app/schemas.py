@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict
+from typing import Dict, Any
 
 from pydantic import BaseModel, Field
 
@@ -17,3 +17,20 @@ class Telemetry(BaseModel):
                 "data": {"temperature": 32.5, "humidity": 70}
             }
         }
+
+
+class Acknowledgement(BaseModel):
+    status: str = Field(..., description="The status of the acknowledgement, e.g. 'Success', 'DB error'")
+    details: Dict[str, Any] = Field(default_factory=dict, description="Additional details about the acknowledgement")
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "status": "Success",
+                "details": {"message_id": "12345"}
+            }
+        }
+
+
+class DBError(Exception):
+    pass

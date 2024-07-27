@@ -2,10 +2,10 @@ import asyncio
 import json
 import os
 import asyncpg
-from asyncpg import ConnectionDoesNotExistError, ConnectionFailureError, TooManyConnectionsError
 
 from app.logging import logger
-from app.schemas import Telemetry
+from app.schemas import Telemetry, DBError
+from app.utils import async_retry_on_exception
 
 
 async def _init_connection(conn):
@@ -35,8 +35,10 @@ class DBInterface:
     async def init(self, host: str, port: int, user: str, password: str, name: str):
         # In case we have a warm start, reuse existing connection pool
         if self._connection_pool is not None:
+            logger.info("db already initialized")
             return
 
+        logger.info("initializing db")
         self._connection_pool = await asyncpg.create_pool(
             host=host,
             port=port,
@@ -58,16 +60,21 @@ class DBInterface:
 
 
 class TelemetryDB(DBInterface):
+    @async_retry_on_exception(max_retries=5, initial_delay=1,
+                              exceptions=(DBError,))
     async def insert_telemetry(self, telemetry: Telemetry):
+        logger.debug(f"inserting data: {telemetry.dict}")
         try:
             # Use upsert to update existing data in case it is needed
-            await self._connection_pool.execute(
+            db_id = await self._connection_pool.execute(
                 """
                 INSERT INTO telemetry (source, timestamp, data)
                 VALUES ($1, $2, $3)
                 ON CONFLICT (source, timestamp) DO UPDATE SET data = $3, updated_at = now()
+                RETURNING id
                 """,
                 telemetry.source, telemetry.timestamp, telemetry.data
             )
-        except (ConnectionDoesNotExistError, ConnectionFailureError, TooManyConnectionsError) as conn_err:
-            logger.warning(f"Connection error: {conn_err}")
+            return db_id
+        except (asyncpg.PostgresConnectionError, asyncpg.PostgresError) as e:
+            raise DBError("A database error occurred") from e
