@@ -9,5 +9,3 @@ RUN pip install -r requirements.txt
 RUN pip install pytest pytest-asyncio
 
 COPY . .
-
-CMD ["pytest", "--asyncio-mode=strict", "--junitxml=/usr/src/app/test-results/results.xml"]
