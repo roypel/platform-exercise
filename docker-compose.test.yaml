@@ -2,7 +2,6 @@ services:
   app:
     build: .
     environment:
-      - DATABASE_URL=postgres://testuser:testpassword@db:5432/testdb
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
     depends_on:
